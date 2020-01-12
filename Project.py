@@ -31,6 +31,18 @@ def draw_text(surf, text, size, x, y):
     surf.blit(text_surface, text_rect)
 
 
+def draw_shield_bar(surf, x, y, pct):
+    if pct < 0:
+        pct = 0
+    BAR_LENGTH = 100
+    BAR_HEIGHT = 10
+    fill = (pct / 100) * BAR_LENGTH
+    outline_rect = pygame.Rect(x, y, BAR_LENGTH, BAR_HEIGHT)
+    fill_rect = pygame.Rect(x, y, fill, BAR_HEIGHT)
+    pygame.draw.rect(surf, pygame.Color('Green'), fill_rect)
+    pygame.draw.rect(surf, pygame.Color('White'), outline_rect, 2)
+
+
 def load_image(name, colorkey=None):
     fullname = os.path.join('data', name)
     image = pygame.image.load(fullname)
@@ -46,6 +58,7 @@ def load_image(name, colorkey=None):
 class Player(pygame.sprite.Sprite):
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
+        self.shield = 100
         self.image = pygame.transform.scale(player_img, (65, 40))
         self.rect = self.image.get_rect()
         self.radius = 20
@@ -108,6 +121,12 @@ class Bullet(pygame.sprite.Sprite):
             self.kill()
 
 
+def newmob():
+    m = Enemy()
+    all_sprites.add(m)
+    enemy.add(m)
+
+
 def terminate():
     pygame.quit()
     sys.exit()
@@ -131,9 +150,7 @@ pygame.mixer.music.set_volume(0.3)
 player = Player()
 all_sprites.add(player)
 for i in range(10):
-    m = Enemy()
-    all_sprites.add(m)
-    enemy.add(m)
+    newmob()
 
 score = 0
 pygame.mixer.music.play(loops=-1)
@@ -149,20 +166,22 @@ while running:
     all_sprites.draw(screen)
     all_sprites.update()
 
-    hits = pygame.sprite.spritecollide(player, enemy, False, pygame.sprite.collide_circle)
-    if hits:
-        running = False
+    hits = pygame.sprite.spritecollide(player, enemy, True, pygame.sprite.collide_circle)
+    for hit in hits:
+        player.shield -= 10
+        newmob()
+        if player.shield <= 0:
+            running = False
     screen.fill(pygame.Color("Black"))
     screen.blit(background, background_rect)
     all_sprites.draw(screen)
     draw_text(screen, str(score), 18, WIDTH / 2, 10)
+    draw_shield_bar(screen, 10, 7, player.shield)
     hits = pygame.sprite.groupcollide(enemy, bullets, True, True)
     for hit in hits:
         score += 50
         random.choice(expl_sounds).play()
-        m = Enemy()
-        all_sprites.add(m)
-        enemy.add(m)
+        newmob()
 
     pygame.display.flip()
     clock.tick(FPS)
