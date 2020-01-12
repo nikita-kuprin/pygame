@@ -4,6 +4,7 @@ import random
 import os
 
 pygame.init()
+pygame.mixer.init()
 
 FPS = 60
 
@@ -16,6 +17,16 @@ clock = pygame.time.Clock()
 all_sprites = pygame.sprite.Group()
 enemy = pygame.sprite.Group()
 bullets = pygame.sprite.Group()
+
+font_name = pygame.font.match_font('arial')
+
+
+def draw_text(surf, text, size, x, y):
+    font = pygame.font.Font(font_name, size)
+    text_surface = font.render(text, True, pygame.Color('White'))
+    text_rect = text_surface.get_rect()
+    text_rect.midtop = (x, y)
+    surf.blit(text_surface, text_rect)
 
 
 def load_image(name, colorkey=None):
@@ -62,7 +73,7 @@ class Player(pygame.sprite.Sprite):
 class Enemy(pygame.sprite.Sprite):
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
-        self.image = pygame.transform.scale(random.choice(meteor_img), (68, 66))
+        self.image = pygame.transform.scale(random.choice(meteor_img), (70, 60))
         self.rect = self.image.get_rect()
         self.rect.x = random.randrange(WIDTH - self.rect.width)
         self.rect.y = random.randrange(-100, -40)
@@ -110,10 +121,12 @@ bullet_img = load_image('bullet.png')
 screen.blit(background, background_rect)
 player = Player()
 all_sprites.add(player)
-for i in range(16):
+for i in range(10):
     m = Enemy()
     all_sprites.add(m)
     enemy.add(m)
+
+score = 0
 
 running = True
 while running:
@@ -133,15 +146,15 @@ while running:
     screen.fill(pygame.Color("Black"))
     screen.blit(background, background_rect)
     all_sprites.draw(screen)
-
+    draw_text(screen, str(score), 18, WIDTH / 2, 10)
     hits = pygame.sprite.groupcollide(enemy, bullets, True, True)
     for hit in hits:
+        score += 50
         m = Enemy()
         all_sprites.add(m)
         enemy.add(m)
 
     pygame.display.flip()
-
     clock.tick(FPS)
 
 terminate()
