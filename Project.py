@@ -7,7 +7,7 @@ pygame.init()
 
 FPS = 60
 
-WIDTH = 500
+WIDTH = 750
 HEIGHT = 600
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Game")
@@ -33,9 +33,9 @@ def load_image(name, colorkey=None):
 class Player(pygame.sprite.Sprite):
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
-        self.image = pygame.transform.scale(player_img, (60, 30))
+        self.image = pygame.transform.scale(player_img, (65, 40))
         self.rect = self.image.get_rect()
-        self.image.set_colorkey(pygame.Color('White'))
+        self.radius = 20
         self.rect.centerx = WIDTH / 2
         self.rect.bottom = HEIGHT - 10
         self.speedx = 0
@@ -62,12 +62,13 @@ class Player(pygame.sprite.Sprite):
 class Enemy(pygame.sprite.Sprite):
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
-        self.image = pygame.transform.scale(meteor_img, (60, 55))
+        self.image = pygame.transform.scale(random.choice(meteor_img), (68, 66))
         self.rect = self.image.get_rect()
         self.rect.x = random.randrange(WIDTH - self.rect.width)
         self.rect.y = random.randrange(-100, -40)
         self.speedy = random.randrange(1, 8)
         self.speedx = random.randrange(-3, 3)
+        self.radius = int(self.rect.width * .85 / 2)
 
     def update(self):
         self.rect.x += self.speedx
@@ -101,12 +102,15 @@ def terminate():
 background = load_image('background.png')
 background_rect = background.get_rect()
 player_img = load_image('rocket.png')
-meteor_img = load_image('meteor.png')
+meteor_img = []
+meteor_name_list = ['meteor1.png', 'meteor2.png']
+for img in meteor_name_list:
+    meteor_img.append(load_image('{}'.format(img)))
 bullet_img = load_image('bullet.png')
 screen.blit(background, background_rect)
 player = Player()
 all_sprites.add(player)
-for i in range(8):
+for i in range(16):
     m = Enemy()
     all_sprites.add(m)
     enemy.add(m)
@@ -123,7 +127,7 @@ while running:
     all_sprites.draw(screen)
     all_sprites.update()
 
-    hits = pygame.sprite.spritecollide(player, enemy, False)
+    hits = pygame.sprite.spritecollide(player, enemy, False, pygame.sprite.collide_circle)
     if hits:
         running = False
     screen.fill(pygame.Color("Black"))
