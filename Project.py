@@ -20,6 +20,8 @@ bullets = pygame.sprite.Group()
 
 font_name = pygame.font.match_font('arial')
 
+snd_dir = os.path.join(os.path.dirname(__file__), 'data')
+
 
 def draw_text(surf, text, size, x, y):
     font = pygame.font.Font(font_name, size)
@@ -68,6 +70,7 @@ class Player(pygame.sprite.Sprite):
         bullet = Bullet(self.rect.centerx, self.rect.top)
         all_sprites.add(bullet)
         bullets.add(bullet)
+        shoot_sound.play()
 
 
 class Enemy(pygame.sprite.Sprite):
@@ -119,6 +122,12 @@ for img in meteor_name_list:
     meteor_img.append(load_image('{}'.format(img)))
 bullet_img = load_image('bullet.png')
 screen.blit(background, background_rect)
+shoot_sound = pygame.mixer.Sound(os.path.join(snd_dir, 'pew.wav'))
+expl_sounds = []
+for snd in ['expl3.wav', 'expl6.wav']:
+    expl_sounds.append(pygame.mixer.Sound(os.path.join(snd_dir, snd)))
+pygame.mixer.music.load(os.path.join(snd_dir, 'music.wav'))
+pygame.mixer.music.set_volume(0.3)
 player = Player()
 all_sprites.add(player)
 for i in range(10):
@@ -127,7 +136,7 @@ for i in range(10):
     enemy.add(m)
 
 score = 0
-
+pygame.mixer.music.play(loops=-1)
 running = True
 while running:
     for event in pygame.event.get():
@@ -150,6 +159,7 @@ while running:
     hits = pygame.sprite.groupcollide(enemy, bullets, True, True)
     for hit in hits:
         score += 50
+        random.choice(expl_sounds).play()
         m = Enemy()
         all_sprites.add(m)
         enemy.add(m)
