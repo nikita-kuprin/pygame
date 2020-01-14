@@ -2,6 +2,9 @@ import pygame
 import sys
 import random
 import os
+from PyQt5 import uic
+from PyQt5.QtWidgets import QApplication, QMainWindow
+from PyQt5.QtGui import QIcon
 
 pygame.init()
 pygame.mixer.init()
@@ -10,6 +13,7 @@ FPS = 60
 POWERUP_TIME = 5000
 WIDTH = 500
 HEIGHT = 600
+MOBS = 5
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Game")
 clock = pygame.time.Clock()
@@ -29,7 +33,8 @@ def show_go_screen():
     draw_text(screen, "GAME!", 64, WIDTH / 2, HEIGHT / 4)
     draw_text(screen, "Arrow keys move, Space to fire", 22,
               WIDTH / 2, HEIGHT / 2)
-    draw_text(screen, "Press any key to begin", 18, WIDTH / 2, HEIGHT * 3 / 4)
+    draw_text(screen, 'Press left shift to go to settings', 20, WIDTH / 2, HEIGHT * 3 / 4 - 22)
+    draw_text(screen, "Press any other key to begin", 20, WIDTH / 2, HEIGHT * 3 / 4)
     pygame.display.flip()
     waiting = True
     while waiting:
@@ -37,8 +42,15 @@ def show_go_screen():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 terminate()
-            if event.type == pygame.KEYUP:
-                waiting = False
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_LALT:
+                    ex.show()
+            elif event.type == pygame.KEYUP or event.type == pygame.MOUSEBUTTONDOWN:
+                try:
+                    if event.key != pygame.K_LALT:
+                        waiting = False
+                except AttributeError:
+                    waiting = False
 
 
 def draw_text(surf, text, size, x, y):
@@ -81,6 +93,26 @@ def load_image(name, colorkey=None):
     return image
 
 
+class MyWidget(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        uic.loadUi('setup_menu.ui', self)
+        self.setWindowTitle('Settings')
+        self.setWindowIcon(QIcon('setup.png'))
+        self.ez.setChecked(True)
+
+        self.pushButton.clicked.connect(self.next)
+
+    def next(self):
+        global MOBS
+        if self.ez.isChecked():
+            ex.hide()
+            MOBS = 9
+        elif self.hard.isChecked():
+            ex.hide()
+            MOBS = 18
+
+
 class Player(pygame.sprite.Sprite):
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
@@ -95,7 +127,7 @@ class Player(pygame.sprite.Sprite):
         self.last_shot = pygame.time.get_ticks()
         self.power = 1
         self.power_time = pygame.time.get_ticks()
-        self.lives = 3
+        self.lives = 1
         self.hidden = False
         self.hide_timer = pygame.time.get_ticks()
 
@@ -157,7 +189,7 @@ class Enemy(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.x = random.randrange(WIDTH - self.rect.width)
         self.rect.y = random.randrange(-100, -40)
-        self.speedy = random.randrange(1, 8)
+        self.speedy = random.randrange(1, 10)
         self.speedx = random.randrange(-3, 3)
         self.radius = int(self.rect.width * .85 / 2)
 
@@ -284,8 +316,8 @@ live_png = pygame.transform.scale(live_png, (24, 40))
 powerup_images['live'] = live_png
 player = Player()
 all_sprites.add(player)
-for i in range(13):
-    newmob()
+app = QApplication(sys.argv)
+ex = MyWidget()
 
 score = 0
 pygame.mixer.music.play(loops=-1)
@@ -301,7 +333,7 @@ while running:
         powerups = pygame.sprite.Group()
         player = Player()
         all_sprites.add(player)
-        for i in range(8):
+        for i in range(MOBS):
             newmob()
         score = 0
     for event in pygame.event.get():
@@ -313,7 +345,7 @@ while running:
 
     hits = pygame.sprite.spritecollide(player, enemy, True, pygame.sprite.collide_circle)
     for hit in hits:
-        player.shield -= 10 + hit.radius * .6
+        player.shield -= 36 + hit.radius * .6
         clash_sound.play()
         expl = Explosion(hit.rect.center, 'sm')
         all_sprites.add(expl)
@@ -351,7 +383,7 @@ while running:
         expl = Explosion(hit.rect.center, 'lg')
         all_sprites.add(expl)
         newmob()
-        if random.random() > 0.9:
+        if random.random() > .97:
             pow = Pow(hit.rect.center)
             all_sprites.add(pow)
             powerups.add(pow)
@@ -361,3 +393,4 @@ while running:
     clock.tick(FPS)
 
 terminate()
+sys.exit(app.exec())
