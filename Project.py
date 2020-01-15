@@ -27,24 +27,36 @@ font_name = pygame.font.match_font('arial')
 snd_dir = os.path.join(os.path.dirname(__file__), 'data')
 
 
+def draw_control_text():
+    if CONTROL:
+        draw_text(screen, "Arrow keys to move, Space to fire", 20, WIDTH / 2, HEIGHT * 3 / 4)
+    else:
+        draw_text(screen, "[A]-[D] keys to move, Space to fire", 20, WIDTH / 2, HEIGHT * 3 / 4)
+
+
 def ready_screen():
     draw_text(screen, "GET READY!", 40, WIDTH / 2, HEIGHT / 2)
+    draw_control_text()
     pygame.display.update()
     pygame.time.wait(1000)
     screen.fill(pygame.Color('Black'))
     draw_text(screen, "3", 40, WIDTH / 2, HEIGHT / 2)
+    draw_control_text()
     pygame.display.update()
     pygame.time.wait(1000)
     screen.fill(pygame.Color('Black'))
     draw_text(screen, "2", 40, WIDTH / 2, HEIGHT / 2)
+    draw_control_text()
     pygame.display.update()
     pygame.time.wait(1000)
     screen.fill(pygame.Color('Black'))
     draw_text(screen, "1", 40, WIDTH / 2, HEIGHT / 2)
+    draw_control_text()
     pygame.display.update()
     pygame.time.wait(1000)
     screen.fill(pygame.Color('Black'))
     draw_text(screen, "GO!", 40, WIDTH / 2, HEIGHT / 2)
+    draw_control_text()
     pygame.display.update()
     pygame.time.wait(1000)
     screen.fill(pygame.Color('Black'))
@@ -52,10 +64,9 @@ def ready_screen():
 
 def show_go_screen():
     screen.blit(background, background_rect)
-    draw_text(screen, "GAME!", 64, WIDTH / 2, HEIGHT / 4)
-    draw_text(screen, "Arrow keys move, Space to fire", 22, WIDTH / 2, HEIGHT / 2)
-    draw_text(screen, 'Press [LEFT ALT] to go to settings', 20, WIDTH / 2, HEIGHT * 3 / 4 - 22)
-    draw_text(screen, "Press [RETURN] to begin", 20, WIDTH / 2, HEIGHT * 3 / 4)
+    draw_text(screen, "GAME!", 70, WIDTH / 2, HEIGHT / 4)
+    draw_text(screen, 'Press [LEFT ALT] to go to settings', 22, WIDTH / 2, HEIGHT * 3 / 4 - 22)
+    draw_text(screen, "Press [RETURN] to begin", 22, WIDTH / 2, HEIGHT * 3 / 4)
     pygame.display.flip()
     waiting = True
     while waiting:
