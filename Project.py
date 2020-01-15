@@ -13,11 +13,10 @@ FPS = 60
 POWERUP_TIME = 5000
 WIDTH = 500
 HEIGHT = 600
-MOBS = 5
+MOBS = 9
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Game")
 clock = pygame.time.Clock()
-
+CONTROL = 1
 all_sprites = pygame.sprite.Group()
 enemy = pygame.sprite.Group()
 bullets = pygame.sprite.Group()
@@ -28,13 +27,35 @@ font_name = pygame.font.match_font('arial')
 snd_dir = os.path.join(os.path.dirname(__file__), 'data')
 
 
+def ready_screen():
+    draw_text(screen, "GET READY!", 40, WIDTH / 2, HEIGHT / 2)
+    pygame.display.update()
+    pygame.time.wait(1000)
+    screen.fill(pygame.Color('Black'))
+    draw_text(screen, "3", 40, WIDTH / 2, HEIGHT / 2)
+    pygame.display.update()
+    pygame.time.wait(1000)
+    screen.fill(pygame.Color('Black'))
+    draw_text(screen, "2", 40, WIDTH / 2, HEIGHT / 2)
+    pygame.display.update()
+    pygame.time.wait(1000)
+    screen.fill(pygame.Color('Black'))
+    draw_text(screen, "1", 40, WIDTH / 2, HEIGHT / 2)
+    pygame.display.update()
+    pygame.time.wait(1000)
+    screen.fill(pygame.Color('Black'))
+    draw_text(screen, "GO!", 40, WIDTH / 2, HEIGHT / 2)
+    pygame.display.update()
+    pygame.time.wait(1000)
+    screen.fill(pygame.Color('Black'))
+
+
 def show_go_screen():
     screen.blit(background, background_rect)
     draw_text(screen, "GAME!", 64, WIDTH / 2, HEIGHT / 4)
-    draw_text(screen, "Arrow keys move, Space to fire", 22,
-              WIDTH / 2, HEIGHT / 2)
-    draw_text(screen, 'Press left shift to go to settings', 20, WIDTH / 2, HEIGHT * 3 / 4 - 22)
-    draw_text(screen, "Press any other key to begin", 20, WIDTH / 2, HEIGHT * 3 / 4)
+    draw_text(screen, "Arrow keys move, Space to fire", 22, WIDTH / 2, HEIGHT / 2)
+    draw_text(screen, 'Press [LEFT ALT] to go to settings', 20, WIDTH / 2, HEIGHT * 3 / 4 - 22)
+    draw_text(screen, "Press [RETURN] to begin", 20, WIDTH / 2, HEIGHT * 3 / 4)
     pygame.display.flip()
     waiting = True
     while waiting:
@@ -45,11 +66,7 @@ def show_go_screen():
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LALT:
                     ex.show()
-            elif event.type == pygame.KEYUP or event.type == pygame.MOUSEBUTTONDOWN:
-                try:
-                    if event.key != pygame.K_LALT:
-                        waiting = False
-                except AttributeError:
+                elif event.key == pygame.K_RETURN:
                     waiting = False
 
 
@@ -100,17 +117,23 @@ class MyWidget(QMainWindow):
         self.setWindowTitle('Settings')
         self.setWindowIcon(QIcon('setup.png'))
         self.ez.setChecked(True)
-
+        self.control1.setChecked(True)
         self.pushButton.clicked.connect(self.next)
 
     def next(self):
-        global MOBS
+        global MOBS, CONTROL
         if self.ez.isChecked():
             ex.hide()
             MOBS = 9
         elif self.hard.isChecked():
             ex.hide()
             MOBS = 18
+        if self.control1.isChecked():
+            ex.hide()
+            CONTROL = 1
+        elif self.control2.isChecked():
+            ex.hide()
+            CONTROL = 0
 
 
 class Player(pygame.sprite.Sprite):
@@ -141,10 +164,16 @@ class Player(pygame.sprite.Sprite):
             self.hidden = False
             self.rect.centerx = WIDTH / 2
             self.rect.bottom = HEIGHT - 10
-        if keystate[pygame.K_LEFT]:
-            self.speedx = -8
-        if keystate[pygame.K_RIGHT]:
-            self.speedx = 8
+        if CONTROL:
+            if keystate[pygame.K_LEFT]:
+                self.speedx = -8
+            if keystate[pygame.K_RIGHT]:
+                self.speedx = 8
+        else:
+            if keystate[pygame.K_a]:
+                self.speedx = -8
+            if keystate[pygame.K_d]:
+                self.speedx = 8
         if keystate[pygame.K_SPACE]:
             self.shooting()
         self.rect.x += self.speedx
@@ -269,6 +298,8 @@ def terminate():
     sys.exit()
 
 
+pygame.display.set_caption("Game")
+pygame.display.set_icon(load_image('meteor1.png'))
 background = load_image('background.png')
 background_rect = background.get_rect()
 player_img = load_image('rocket.png')
@@ -327,6 +358,8 @@ while running:
     if game_over:
         show_go_screen()
         game_over = False
+        screen.fill(pygame.Color('Black'))
+        ready_screen()
         all_sprites = pygame.sprite.Group()
         mobs = pygame.sprite.Group()
         bullets = pygame.sprite.Group()
