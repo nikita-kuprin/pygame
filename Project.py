@@ -1,15 +1,17 @@
-import pygame
 import sys
 import random
 import os
 from PyQt5 import uic
-from PyQt5.QtWidgets import QApplication, QMainWindow
+from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox
 from PyQt5.QtGui import QIcon
+import contextlib
 
+with contextlib.redirect_stdout(None):
+    import pygame
 pygame.init()
 pygame.mixer.init()
 
-FPS = 60
+FPS = 40
 POWERUP_TIME = 5000
 WIDTH = 500
 HEIGHT = 600
@@ -21,9 +23,7 @@ all_sprites = pygame.sprite.Group()
 enemy = pygame.sprite.Group()
 bullets = pygame.sprite.Group()
 powerups = pygame.sprite.Group()
-
 font_name = pygame.font.match_font('arial')
-
 snd_dir = os.path.join(os.path.dirname(__file__), 'data')
 
 
@@ -63,10 +63,10 @@ def ready_screen():
 
 
 def show_go_screen():
-    screen.blit(background, background_rect)
-    draw_text(screen, "GAME!", 70, WIDTH / 2, HEIGHT / 4)
-    draw_text(screen, 'Press [LEFT ALT] to go to settings', 22, WIDTH / 2, HEIGHT * 3 / 4 - 22)
-    draw_text(screen, "Press [RETURN] to begin", 22, WIDTH / 2, HEIGHT * 3 / 4)
+    screen.blit(menu, menu_rect)
+    draw_text_menu(screen, ' Press [LEFT ALT] To Go To Settings ', 20, WIDTH / 2, HEIGHT * 3 / 4)
+    draw_text_menu(screen, "   Press [RETURN] To Begin Game   ", 20, WIDTH / 2, HEIGHT * 3 / 4 - 20)
+    draw_text_menu(screen, '          Press [Q] To Quit       ', 20, WIDTH / 2, HEIGHT * 3 / 4 - 40)
     pygame.display.flip()
     waiting = True
     while waiting:
@@ -79,6 +79,16 @@ def show_go_screen():
                     ex.show()
                 elif event.key == pygame.K_RETURN:
                     waiting = False
+                elif event.key == pygame.K_q:
+                    terminate()
+
+
+def draw_text_menu(surf, text, size, x, y):
+    font = pygame.font.Font(font_name, size)
+    text_surface = font.render(text, True, pygame.Color('#FF00FF'))
+    text_rect = text_surface.get_rect()
+    text_rect.midtop = (x, y)
+    surf.blit(text_surface, text_rect)
 
 
 def draw_text(surf, text, size, x, y):
@@ -201,15 +211,23 @@ class Player(pygame.sprite.Sprite):
                 bullet = Bullet(self.rect.centerx, self.rect.top)
                 all_sprites.add(bullet)
                 bullets.add(bullet)
-                shoot_sound.play()
-            if self.power >= 2:
+            if self.power == 2:
                 bullet1 = Bullet(self.rect.left, self.rect.centery)
                 bullet2 = Bullet(self.rect.right, self.rect.centery)
                 all_sprites.add(bullet1)
                 all_sprites.add(bullet2)
                 bullets.add(bullet1)
                 bullets.add(bullet2)
-                shoot_sound.play()
+            if self.power >= 3:
+                bullet1 = Bullet(self.rect.left, self.rect.centery)
+                bullet2 = Bullet(self.rect.right, self.rect.centery)
+                missile1 = Missile(self.rect.centerx, self.rect.top)  # Missile shoots from center of ship
+                all_sprites.add(bullet1)
+                all_sprites.add(bullet2)
+                all_sprites.add(missile1)
+                bullets.add(bullet1)
+                bullets.add(bullet2)
+                bullets.add(missile1)
 
     def powerup(self):
         self.power += 1
@@ -246,6 +264,22 @@ class Bullet(pygame.sprite.Sprite):
     def __init__(self, x, y):
         pygame.sprite.Sprite.__init__(self)
         self.image = bullet_img
+        self.rect = self.image.get_rect()
+        self.rect.bottom = y
+        self.rect.centerx = x
+        self.speedy = -10
+
+    def update(self):
+        self.rect.y += self.speedy
+        if self.rect.bottom < 0:
+            self.kill()
+
+
+class Missile(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = missile_img
+        self.image.set_colorkey(pygame.Color('Black'))
         self.rect = self.image.get_rect()
         self.rect.bottom = y
         self.rect.centerx = x
@@ -310,9 +344,11 @@ def terminate():
 
 
 pygame.display.set_caption("Game")
-pygame.display.set_icon(load_image('meteor1.png'))
+pygame.display.set_icon(load_image('game_icon.png'))
 background = load_image('background.png')
+menu = load_image('menu.png')
 background_rect = background.get_rect()
+menu_rect = menu.get_rect()
 player_img = load_image('rocket.png')
 player_mini_img = pygame.transform.scale(player_img, (25, 19))
 player_mini_img.set_colorkey(pygame.Color('Black'))
@@ -352,6 +388,8 @@ shield_img = pygame.transform.scale(shield_img, (24, 40))
 powerup_images['shield'] = shield_img
 gun_img = load_image('gun_up.png')
 gun_img = pygame.transform.scale(gun_img, (24, 40))
+missile_img = load_image('missile.png')
+missile_img = pygame.transform.scale(missile_img, (24, 40))
 powerup_images['gun'] = gun_img
 live_png = load_image('live.png')
 live_png = pygame.transform.scale(live_png, (24, 40))
@@ -427,7 +465,7 @@ while running:
         expl = Explosion(hit.rect.center, 'lg')
         all_sprites.add(expl)
         newmob()
-        if random.random() > .97:
+        if random.random() > .4:
             pow = Pow(hit.rect.center)
             all_sprites.add(pow)
             powerups.add(pow)
