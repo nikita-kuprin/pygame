@@ -425,7 +425,6 @@ meteor_img = []
 meteor_name_list = ['meteorBrown_big1.png',
                     'meteorBrown_big2.png',
                     'meteorBrown_med1.png',
-                    'meteorBrown_med3.png',
                     'meteorBrown_small1.png',
                     'meteorBrown_small2.png',
                     'meteorBrown_tiny1.png']
