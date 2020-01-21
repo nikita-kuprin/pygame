@@ -460,7 +460,7 @@ expl_sounds = []
 for snd in ['expl3.wav', 'expl6.wav']:
     expl_sounds.append(pygame.mixer.Sound(os.path.join(snd_dir, snd)))
 
-pygame.mixer.music.load(os.path.join(snd_dir, 'music.wav'))
+# pygame.mixer.music.load(os.path.join(snd_dir, 'music.wav'))
 pygame.mixer.music.set_volume(0.3)
 
 powerup_images = {}
@@ -482,7 +482,7 @@ app = QApplication(sys.argv)
 ex = Setup()
 
 score = 0
-pygame.mixer.music.play(loops=-1)
+# pygame.mixer.music.play(loops=-1)
 game_over = True
 running = True
 
